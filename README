@@ -1,0 +1,14 @@
+## Generator CSV
+
+Sample generator CSV using extensions methods of ILIST C#
+
+### Using class
+--------------------
+
+    var listPeople = new List<People>()
+    {
+        new People{ IdPeople = 1, FirtName = "Rafael", LastName = "Poveda" }
+    };
+    var bytes = listPeople.GetCSVBytes();
+    listPeople.SaveCSVPath(@"c:/temp/","mycsv.csv")
+    listPeople.SaveCSVPath(@"c:/temp/","mycsv2")
