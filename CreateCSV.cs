@@ -16,47 +16,50 @@ namespace GeradorCSV
     /// listPeople.SaveCSVPath(@"c:/temp/","mycsv2")
     /// </summary>
 
-    static class CreateCSV
+    public static class CreateCSV
     {
         public static byte[] GetCSVBytes<T>(this IList<T> list, string separator = ";")
         {
             StringBuilder csv = new StringBuilder();
-
-            //Set header csv
+            //Cria o cabecalho do csv
             csv.AppendLine(SetHeaderCSV<T>(separator));
-
-            //Set body csv
+            //Cria o corpo do csv
             csv.AppendLine(SetBodyCSV<T>(list, separator));
 
-            return new System.Text.UTF8Encoding().GetBytes(csv.ToString());
+            using (var stream = new MemoryStream())
+            using (var sw = new StreamWriter(stream, Encoding.UTF8))
+            {
+                sw.Write(csv.ToString());
+                sw.Flush();
+                return stream.ToArray();
+            }
         }
-
         public static void SaveCSVPath<T>(this IList<T> list, string path, string fileName, string separator = ";")
         {
             StringBuilder csv = new StringBuilder();
-
-            //Set header csv
+            //Cria o cabecalho do csv
             csv.AppendLine(SetHeaderCSV<T>(separator));
-
-            //Set body csv
+            //Cria o corpo do csv
             csv.AppendLine(SetBodyCSV<T>(list, separator));
-
-            //Check if file has extension
+            //Verifica se o nome do arquivo contem .csv
+            //caso nao contenha é adicionado
             fileName = (fileName.Contains(".csv") ? fileName : string.Format("{0}.csv", fileName));
 
-            //Combine Path and FileName
+            //Combina path com filename
             var pathComplete = Path.Combine(path, fileName);
 
-            using (StreamWriter sw = new StreamWriter(pathComplete))
+            using (FileStream fs = new FileStream(pathComplete, FileMode.Truncate))
             {
-                sw.Write(csv.ToString());
+                using (StreamWriter writer = new StreamWriter(fs, Encoding.UTF8))
+                {
+                    writer.Write(csv.ToString());
+                }
             }
         }
 
         private static string SetHeaderCSV<T>(string separator)
         {
-            var objGeneric = Activator.CreateInstance<T>();
-            var properties = objGeneric.GetType().GetProperties();
+            var properties = typeof(T).GetProperties();
             StringBuilder header = new StringBuilder();
 
             foreach (PropertyInfo property in properties)
